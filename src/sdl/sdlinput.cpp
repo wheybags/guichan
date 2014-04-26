@@ -110,7 +110,7 @@ namespace gcn
 
               if (value == -1)
               {
-                  value = (int)event.key.keysym.unicode;
+                  value = (int)event.key.keysym.sym;
               } 
                
               keyInput.setKey(Key(value));
@@ -118,8 +118,15 @@ namespace gcn
               keyInput.setShiftPressed(event.key.keysym.mod & KMOD_SHIFT);
               keyInput.setControlPressed(event.key.keysym.mod & KMOD_CTRL);
               keyInput.setAltPressed(event.key.keysym.mod & KMOD_ALT);
-              keyInput.setMetaPressed(event.key.keysym.mod & KMOD_META);
-              keyInput.setNumericPad(event.key.keysym.sym >= SDLK_KP0
+              
+              #if SDL_MAJOR_VERSION == 2
+                  keyInput.setMetaPressed(event.key.keysym.mod & KMOD_GUI);
+                  keyInput.setNumericPad(event.key.keysym.sym >= SDLK_KP_0
+              #else
+                  keyInput.setMetaPressed(event.key.keysym.mod & KMOD_META);
+                  keyInput.setNumericPad(event.key.keysym.sym >= SDLK_KP0
+              #endif
+
                                      && event.key.keysym.sym <= SDLK_KP_EQUALS);
 
               mKeyInputQueue.push(keyInput);
@@ -140,8 +147,14 @@ namespace gcn
               keyInput.setShiftPressed(event.key.keysym.mod & KMOD_SHIFT);
               keyInput.setControlPressed(event.key.keysym.mod & KMOD_CTRL);
               keyInput.setAltPressed(event.key.keysym.mod & KMOD_ALT);
-              keyInput.setMetaPressed(event.key.keysym.mod & KMOD_META);
-              keyInput.setNumericPad(event.key.keysym.sym >= SDLK_KP0
+              
+              #if SDL_MAJOR_VERSION == 2
+                  keyInput.setMetaPressed(event.key.keysym.mod & KMOD_GUI);
+                  keyInput.setNumericPad(event.key.keysym.sym >= SDLK_KP_0
+              #else
+                  keyInput.setMetaPressed(event.key.keysym.mod & KMOD_META);
+                  keyInput.setNumericPad(event.key.keysym.sym >= SDLK_KP0
+              #endif
                                      && event.key.keysym.sym <= SDLK_KP_EQUALS);
 
               mKeyInputQueue.push(keyInput);
@@ -154,7 +167,7 @@ namespace gcn
               mouseInput.setY(event.button.y);
               mouseInput.setButton(convertMouseButton(event.button.button));
 
-              if (event.button.button == SDL_BUTTON_WHEELDOWN)
+              /*if (event.button.button == SDL_BUTTON_WHEELDOWN)
               {
                   mouseInput.setType(MouseInput::WheelMovedDown);
               }
@@ -162,7 +175,7 @@ namespace gcn
               {
                   mouseInput.setType(MouseInput::WheelMovedUp);
               }
-              else
+              else*/
               {
                   mouseInput.setType(MouseInput::Pressed);
               }
@@ -189,13 +202,21 @@ namespace gcn
               mMouseInputQueue.push(mouseInput);
               break;
 
-          case SDL_ACTIVEEVENT:
+          #if SDL_MAJOR_VERSION == 2
+              case SDL_WINDOWEVENT:
+          #else
+              case SDL_ACTIVEEVENT:
+          #endif
               /*
                * This occurs when the mouse leaves the window and the Gui-chan
                * application loses its mousefocus.
                */
-              if ((event.active.state & SDL_APPMOUSEFOCUS)
-                  && !event.active.gain)
+              #if SDL_MAJOR_VERSION == 2
+                  if (event.window.event == SDL_WINDOWEVENT_ENTER)
+              #else
+                  if ((event.active.state & SDL_APPMOUSEFOCUS)
+                      && !event.active.gain)
+              #endif
               {
                   mMouseInWindow = false;
 
@@ -209,8 +230,12 @@ namespace gcn
                   }
               }
 
-              if ((event.active.state & SDL_APPMOUSEFOCUS)
-                  && event.active.gain)
+              #if SDL_MAJOR_VERSION == 2
+                  else if (event.window.event == SDL_WINDOWEVENT_LEAVE)
+              #else
+                  if ((event.active.state & SDL_APPMOUSEFOCUS)
+                      && event.active.gain)
+              #endif
               {
                   mMouseInWindow = true;
               }
@@ -272,14 +297,18 @@ namespace gcn
               value = Key::Pause;
               break;
           case SDLK_SPACE:
-              // Special characters like ~ (tilde) ends up
-              // with the keysym.sym SDLK_SPACE which
-              // without this check would be lost. The check
-              // is only valid on key down events in SDL.
-              if (event.type == SDL_KEYUP || event.key.keysym.unicode == ' ')
-              {
+              #if SDL_MAJOR_VERSION == 2
                   value = Key::Space;
-              }
+              #else
+                  // Special characters like ~ (tilde) ends up
+                  // with the keysym.sym SDLK_SPACE which
+                  // without this check would be lost. The check
+                  // is only valid on key down events in SDL.
+                  if (event.type == SDL_KEYUP || event.key.keysym.unicode == ' ')
+                  {
+                      value = Key::Space;
+                  }
+              #endif
               break;
           case SDLK_ESCAPE:
               value = Key::Escape;
@@ -299,7 +328,11 @@ namespace gcn
           case SDLK_PAGEUP:
               value = Key::PageUp;
               break;
-          case SDLK_PRINT:
+          #if SDL_MAJOR_VERSION == 2
+              case SDLK_PRINTSCREEN:
+          #else
+              case SDLK_PRINT:
+          #endif
               value = Key::PrintScreen;
               break;
           case SDLK_PAGEDOWN:
@@ -350,27 +383,45 @@ namespace gcn
           case SDLK_F15:
               value = Key::F15;
               break;
-          case SDLK_NUMLOCK:
+          #if SDL_MAJOR_VERSION == 2
+              case SDLK_NUMLOCKCLEAR:
+          #else
+              case SDLK_NUMLOCK:
+          #endif
               value = Key::NumLock;
               break;
           case SDLK_CAPSLOCK:
               value = Key::CapsLock;
               break;
-          case SDLK_SCROLLOCK:
+          #if SDL_MAJOR_VERSION == 2
+              case SDLK_SCROLLLOCK:
+          #else
+              case SDLK_SCROLLOCK:
+          #endif
               value = Key::ScrollLock;
               break;
-          case SDLK_RMETA:
+          #if SDL_MAJOR_VERSION == 2
+              case SDLK_RGUI:
+          #else
+              case SDLK_RMETA:
+          #endif
               value = Key::RightMeta;
               break;
-          case SDLK_LMETA:
+          #if SDL_MAJOR_VERSION == 2
+              case SDLK_LGUI:
+          #else
+              case SDLK_LMETA:
+          #endif
               value = Key::LeftMeta;
               break;
-          case SDLK_LSUPER:
-              value = Key::LeftSuper;
-              break;
-          case SDLK_RSUPER:
-              value = Key::RightSuper;
-              break;
+          #if SDL_MAJOR_VERSION == 1    
+              case SDLK_LSUPER:
+                  value = Key::LeftSuper;
+                  break;
+              case SDLK_RSUPER:
+                  value = Key::RightSuper;
+                  break;
+          #endif
           case SDLK_MODE:
               value = Key::AltGr;
               break;
@@ -401,36 +452,69 @@ namespace gcn
         {
             switch (event.key.keysym.sym)
             {
-              case SDLK_KP0:
-                  value = Key::Insert;
-                  break;
-              case SDLK_KP1:
-                  value = Key::End;
-                  break;
-              case SDLK_KP2:
-                  value = Key::Down;
-                  break;
-              case SDLK_KP3:
-                  value = Key::PageDown;
-                  break;
-              case SDLK_KP4:
-                  value = Key::Left;
-                  break;
-              case SDLK_KP5:
-                  value = 0;
-                  break;
-              case SDLK_KP6:
-                  value = Key::Right;
-                  break;
-              case SDLK_KP7:
-                  value = Key::Home;
-                  break;
-              case SDLK_KP8:
-                  value = Key::Up;
-                  break;
-              case SDLK_KP9:
-                  value = Key::PageUp;
-                  break;
+               #if SDL_MAJOR_VERSION == 2
+                  case SDLK_KP_0:
+                      value = Key::Insert;
+                      break;
+                  case SDLK_KP_1:
+                      value = Key::End;
+                      break;
+                  case SDLK_KP_2:
+                      value = Key::Down;
+                      break;
+                  case SDLK_KP_3:
+                      value = Key::PageDown;
+                      break;
+                  case SDLK_KP_4:
+                      value = Key::Left;
+                      break;
+                  case SDLK_KP_5:
+                      value = 0;
+                      break;
+                  case SDLK_KP_6:
+                      value = Key::Right;
+                      break;
+                  case SDLK_KP_7:
+                      value = Key::Home;
+                      break;
+                  case SDLK_KP_8:
+                      value = Key::Up;
+                      break;
+                  case SDLK_KP_9:
+                      value = Key::PageUp;
+                      break;
+              #else
+                  case SDLK_KP0:
+                      value = Key::Insert;
+                      break;
+                  case SDLK_KP1:
+                      value = Key::End;
+                      break;
+                  case SDLK_KP2:
+                      value = Key::Down;
+                      break;
+                  case SDLK_KP3:
+                      value = Key::PageDown;
+                      break;
+                  case SDLK_KP4:
+                      value = Key::Left;
+                      break;
+                  case SDLK_KP5:
+                      value = 0;
+                      break;
+                  case SDLK_KP6:
+                      value = Key::Right;
+                      break;
+                  case SDLK_KP7:
+                      value = Key::Home;
+                      break;
+                  case SDLK_KP8:
+                      value = Key::Up;
+                      break;
+                  case SDLK_KP9:
+                      value = Key::PageUp;
+                      break;
+              #endif
               default:
                   break;
             }

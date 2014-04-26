@@ -77,7 +77,11 @@ namespace gcn
          *
          * @param target the target to draw to.
          */
-        virtual void setTarget(SDL_Surface* target);
+        #if SDL_MAJOR_VERSION == 2
+            virtual void setTarget(SDL_Renderer* renderer, size_t width, size_t height);
+        #else
+            virtual void setTarget(SDL_Surface* target);
+        #endif
 
         /**
          * Gets the target SDL_Surface.
@@ -150,6 +154,11 @@ namespace gcn
         SDL_Surface* mTarget;
         Color mColor;
         bool mAlpha;
+        
+        #if SDL_MAJOR_VERSION == 2
+            SDL_Renderer* mRenderer;
+            SDL_Texture* mTargetTexture;
+        #endif
     };
 }
 

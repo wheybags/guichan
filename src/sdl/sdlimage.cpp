@@ -145,20 +145,22 @@ namespace gcn
             }
         }
 
-        SDL_Surface *tmp;
-
-        if (hasAlpha)
-        {
-            tmp = SDL_DisplayFormatAlpha(mSurface);
-            SDL_FreeSurface(mSurface);
-            mSurface = NULL;
-        }
-        else
-        {
-            tmp = SDL_DisplayFormat(mSurface);
-            SDL_FreeSurface(mSurface);
-            mSurface = NULL;
-        }
+        SDL_Surface *tmp = mSurface;
+        
+        #if SDL_MAJOR_VERSION == 1
+            if (hasAlpha)
+            {
+                tmp = SDL_DisplayFormatAlpha(mSurface);
+                SDL_FreeSurface(mSurface);
+                mSurface = NULL;
+            }
+            else
+            {
+                tmp = SDL_DisplayFormat(mSurface);
+                SDL_FreeSurface(mSurface);
+                mSurface = NULL;
+            }
+        #endif
 
         if (tmp == NULL)
         {
@@ -167,13 +169,20 @@ namespace gcn
 
         if (hasPink)
         {
-            SDL_SetColorKey(tmp, SDL_SRCCOLORKEY,
+            #if SDL_MAJOR_VERSION == 1
+                SDL_SetColorKey(tmp, SDL_SRCCOLORKEY,
+            #else
+                SDL_SetColorKey(tmp, SDL_TRUE,
+            #endif
                             SDL_MapRGB(tmp->format,255,0,255));
         }
-        if (hasAlpha)
-        {
-            SDL_SetAlpha(tmp, SDL_SRCALPHA, 255);
-        }
+
+        #if SDL_MAJOR_VERSION == 1
+            if (hasAlpha)
+            {
+                SDL_SetAlpha(tmp, SDL_SRCALPHA, 255);
+            }
+        #endif
 
         mSurface = tmp;
     }

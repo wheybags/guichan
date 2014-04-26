@@ -65,6 +65,12 @@ namespace gcn
     SDLGraphics::SDLGraphics()
     {
         mAlpha = false;
+        mTarget = NULL;
+    }
+
+    void clearTransparentSurface(SDL_Surface* s)
+    {
+        SDL_FillRect(s, NULL, SDL_MapRGBA(s->format, 0, 0, 0, 0)); 
     }
 
     void SDLGraphics::_beginDraw()
@@ -75,17 +81,59 @@ namespace gcn
         area.width = mTarget->w;
         area.height = mTarget->h;
         pushClipArea(area);
+
+        #if SDL_MAJOR_VERSION == 2
+            clearTransparentSurface(mTarget);
+        #endif
     }
 
     void SDLGraphics::_endDraw()
     {
+        SDL_UpdateTexture(mTargetTexture, NULL, mTarget->pixels, mTarget->w * sizeof(Uint32));
+        SDL_RenderCopy(mRenderer, mTargetTexture, NULL, NULL);
+
         popClipArea();
     }
 
-    void SDLGraphics::setTarget(SDL_Surface* target)
+
+    #define BPP 4
+    #define DEPTH 32
+
+    SDL_Surface* createTransparentSurface(size_t width, size_t height)
     {
-        mTarget = target;
+         SDL_Surface* s; 
+        
+        // SDL y u do dis
+        #if SDL_BYTEORDER == SDL_BIG_ENDIAN
+            s = SDL_CreateRGBSurface(0, width, height, DEPTH, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
+        #else
+            s = SDL_CreateRGBSurface(0, width, height, DEPTH, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000);
+        #endif
+
+        clearTransparentSurface(s);
+
+        return s;
     }
+   
+    #if SDL_MAJOR_VERSION == 2
+        void SDLGraphics::setTarget(SDL_Renderer* renderer, size_t width, size_t height)
+        {
+            if(mTarget)
+            {
+                SDL_FreeSurface(mTarget);
+                SDL_DestroyTexture(mTargetTexture);
+            }
+
+            mTarget = createTransparentSurface(width, height);
+            mTargetTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
+            mRenderer = renderer;
+        }
+    #else
+        void SDLGraphics::setTarget(SDL_Surface* target)
+        {
+            mTarget = target;
+        }
+    #endif
 
     bool SDLGraphics::pushClipArea(Rectangle area)
     {
