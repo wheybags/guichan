@@ -6,11 +6,11 @@
  * /______/ //______/ //_/ //_____/\ /_/ //_/ //_/ //_/ //_/ /|_/ /
  * \______\/ \______\/ \_\/ \_____\/ \_\/ \_\/ \_\/ \_\/ \_\/ \_\/
  *
- * Copyright (c) 2004 - 2008 Olof Naess�n and Per Larsson
+ * Copyright (c) 2004 - 2008 Olof Naessén and Per Larsson
  *
  *
  * Per Larsson a.k.a finalman
- * Olof Naess�n a.k.a jansem/yakslem
+ * Olof Naessén a.k.a jansem/yakslem
  *
  * Visit: http://guichan.sourceforge.net
  *
@@ -99,8 +99,8 @@ namespace gcn
 
     void AllegroInput::_pollInput()
     {
-        pollMouseInput();
         pollKeyInput();
+        pollMouseInput();
     }
 
     void AllegroInput::pollMouseInput()
@@ -239,16 +239,16 @@ namespace gcn
             keyInput.setMetaPressed(key_shifts & (KB_LWIN_FLAG |
                                                   KB_RWIN_FLAG));
 #endif
-
-
             mKeyQueue.push(keyInput);
-
             mPressedKeys[scancode] = keyInput;
         }
 
         if (key[KEY_ALT] && mPressedKeys.find(KEY_ALT) == mPressedKeys.end())
         {
             KeyInput keyInput(convertToKey(KEY_ALT, 0), KeyInput::Pressed);
+            keyInput.setShiftPressed(key_shifts & KB_SHIFT_FLAG);
+            keyInput.setAltPressed(key_shifts & KB_ALT_FLAG);
+            keyInput.setControlPressed(key_shifts & KB_CTRL_FLAG);
             mKeyQueue.push(keyInput);
             mPressedKeys[KEY_ALT] = keyInput;
         }
@@ -256,6 +256,9 @@ namespace gcn
         if (key[KEY_ALTGR] && mPressedKeys.find(KEY_ALTGR) == mPressedKeys.end())
         {
             KeyInput keyInput(convertToKey(KEY_ALTGR, 0), KeyInput::Pressed);
+            keyInput.setShiftPressed(key_shifts & KB_SHIFT_FLAG);
+            keyInput.setAltPressed(key_shifts & KB_ALT_FLAG);
+            keyInput.setControlPressed(key_shifts & KB_CTRL_FLAG);
             mKeyQueue.push(keyInput);
             mPressedKeys[KEY_ALTGR] = keyInput;
         }
@@ -263,6 +266,9 @@ namespace gcn
         if (key[KEY_LSHIFT] && mPressedKeys.find(KEY_LSHIFT) == mPressedKeys.end())
         {
             KeyInput keyInput(convertToKey(KEY_LSHIFT, 0), KeyInput::Pressed);
+            keyInput.setShiftPressed(key_shifts & KB_SHIFT_FLAG);
+            keyInput.setAltPressed(key_shifts & KB_ALT_FLAG);
+            keyInput.setControlPressed(key_shifts & KB_CTRL_FLAG);
             mKeyQueue.push(keyInput);
             mPressedKeys[KEY_LSHIFT] = keyInput;
         }
@@ -270,13 +276,19 @@ namespace gcn
         if (key[KEY_RSHIFT] && mPressedKeys.find(KEY_RSHIFT) == mPressedKeys.end())
         {
             KeyInput keyInput(convertToKey(KEY_RSHIFT, 0), KeyInput::Pressed);
+            keyInput.setShiftPressed(key_shifts & KB_SHIFT_FLAG);
+            keyInput.setAltPressed(key_shifts & KB_ALT_FLAG);
+            keyInput.setControlPressed(key_shifts & KB_CTRL_FLAG);
             mKeyQueue.push(keyInput);
             mPressedKeys[KEY_RSHIFT] = keyInput;
         }
-		
+
         if (key[KEY_LCONTROL] && mPressedKeys.find(KEY_LCONTROL) == mPressedKeys.end())
         {
             KeyInput keyInput(convertToKey(KEY_LCONTROL, 0), KeyInput::Pressed);
+            keyInput.setShiftPressed(key_shifts & KB_SHIFT_FLAG);
+            keyInput.setAltPressed(key_shifts & KB_ALT_FLAG);
+            keyInput.setControlPressed(key_shifts & KB_CTRL_FLAG);
             mKeyQueue.push(keyInput);
             mPressedKeys[KEY_LCONTROL] = keyInput;
         }
@@ -284,6 +296,9 @@ namespace gcn
         if (key[KEY_RCONTROL] && mPressedKeys.find(KEY_RCONTROL) == mPressedKeys.end())
         {
             KeyInput keyInput(convertToKey(KEY_RCONTROL, 0), KeyInput::Pressed);
+            keyInput.setShiftPressed(key_shifts & KB_SHIFT_FLAG);
+            keyInput.setAltPressed(key_shifts & KB_ALT_FLAG);
+            keyInput.setControlPressed(key_shifts & KB_CTRL_FLAG);
             mKeyQueue.push(keyInput);
             mPressedKeys[KEY_RCONTROL] = keyInput;
         }
@@ -299,7 +314,30 @@ namespace gcn
                 keyInput.setShiftPressed(iter->second.isShiftPressed());
                 keyInput.setAltPressed(iter->second.isAltPressed());
                 keyInput.setControlPressed(iter->second.isControlPressed());
-
+                
+                // Se limpian las banderas de pulsación de teclas especiales en la
+                // nueva tecla que se va añadir a la cola.
+                // NOTA: Es necesario corregir para que la pulsación de teclas
+                //       funcione con los eventos de ratón.
+                int code = keyInput.getKey().getValue();
+                if ((code == gcn::Key::LeftShift) ||
+                    (code == gcn::Key::RightShift))
+                {
+                    keyInput.setShiftPressed(false);
+                }
+                         
+                if ((code == gcn::Key::LeftAlt) ||
+                    (code == gcn::Key::RightAlt))
+                {
+                    keyInput.setAltPressed(false);
+                }
+                         
+                if ((code == gcn::Key::LeftControl) ||
+                    (code == gcn::Key::RightControl))
+                {
+                    keyInput.setControlPressed(false);
+                }
+                              
                 mKeyQueue.push(keyInput);
 
                 tempIter = iter;
