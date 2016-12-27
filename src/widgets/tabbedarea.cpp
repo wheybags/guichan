@@ -6,11 +6,11 @@
  * /______/ //______/ //_/ //_____/\ /_/ //_/ //_/ //_/ //_/ /|_/ /
  * \______\/ \______\/ \_\/ \_____\/ \_\/ \_\/ \_\/ \_\/ \_\/ \_\/
  *
- * Copyright (c) 2004 - 2008 Olof Naessén and Per Larsson
+ * Copyright (c) 2004 - 2008 Olof NaessÃ©n and Per Larsson
  *
  *
  * Per Larsson a.k.a finalman
- * Olof Naessén a.k.a jansem/yakslem
+ * Olof NaessÃ©n a.k.a jansem/yakslem
  *
  * Visit: http://guichan.sourceforge.net
  *
@@ -309,15 +309,25 @@ namespace gcn
         // the selected tab.
         if (mSelectedTab != NULL)
         {
-            graphics->setColor(getBaseColor());
-            graphics->drawLine(mSelectedTab->getX() + 1,
-                               mTabContainer->getHeight(),
-                               mSelectedTab->getX() + mSelectedTab->getWidth() - 2,
-                               mTabContainer->getHeight());
-
+            graphics->setColor (getBaseColor());
+            graphics->drawLine (mSelectedTab->getX() + 1,
+                                mTabContainer->getHeight(),
+                                mSelectedTab->getX() + mSelectedTab->getWidth() - 2,
+                                mTabContainer->getHeight());
         }
-
+        
         //drawChildren(graphics);
+        std::vector<std::pair<Tab*, Widget*>>::iterator iter;
+        for (iter = mTabs.begin(); iter != mTabs.end(); iter++)
+        {
+            iter->first->_draw(graphics);
+            if (iter->first == mSelectedTab)
+            {
+                //iter->second->setX(20);
+                //iter->second->setY(50);
+                iter->second->_draw(graphics);
+            }
+        }
     }
 
     void TabbedArea::adjustSize()
@@ -358,6 +368,10 @@ namespace gcn
             Tab* tab = mTabs[i].first;
             tab->setPosition(x, maxTabHeight - tab->getHeight());
             x += tab->getWidth();
+            
+            Widget* widget = mTabs[i].second;
+            widget->setX(mWidgetContainer->getX());
+            widget->setY(mWidgetContainer->getY());
         }
     }
 
