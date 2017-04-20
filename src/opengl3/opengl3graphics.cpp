@@ -55,7 +55,7 @@
 
 namespace gcn
 {
-    OpenGL3Graphics::OpenGL3Graphics() : mVBO (0), mImageShader (0), mLineShader (0)
+    OpenGL3Graphics::OpenGL3Graphics() : mInitialize (true), mVBO (0), mImageShader (0), mLineShader (0)
     {
         setTargetPlane(640, 480);
         mAlpha = false;
@@ -78,7 +78,7 @@ namespace gcn
 
     void OpenGL3Graphics::_beginDraw()
     {
-        if (mImageShader == 0)
+        if (mInitialize)
         {
             GLenum error = glewInit();
             if (GLEW_OK != error)
@@ -129,6 +129,8 @@ namespace gcn
             glUniform4f(glGetUniformLocation(mLineShader, "uColor"), 0.0f, 0.0f, 0.0f, 0.0f);
 
             glGenBuffers(1, &mVBO);
+
+            mInitialize = false;
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, mVBO);

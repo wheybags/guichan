@@ -107,7 +107,7 @@ namespace gcn
 		 *               the same as the screen resolution.
          */
         virtual void setTargetPlane(int width, int height);
-       
+
         /**
          * Gets the target plane width.
          *
@@ -164,6 +164,8 @@ namespace gcn
         GLuint mLineShader;
 
         glm::mat4 mProjection;
+
+        mutable bool mInitialize;
 
     private:
 
