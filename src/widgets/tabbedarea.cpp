@@ -102,7 +102,8 @@ namespace gcn
     {
         tab->setTabbedArea(this);
         tab->addActionListener(this);
-
+        
+/**/    //tab->addMouseListener(mTabContainer);
         mTabContainer->add(tab);
         mTabs.push_back(std::pair<Tab*, Widget*>(tab, widget));
 
@@ -255,6 +256,11 @@ namespace gcn
         return mSelectedTab;
     }
 
+    bool TabbedArea::isTabActive() const
+    {
+        return tabActive;
+    }
+
     void TabbedArea::setOpaque(bool opaque)
     {
         mOpaque = opaque;
@@ -265,7 +271,7 @@ namespace gcn
         return mOpaque;
     }
 
-    void TabbedArea::draw(Graphics *graphics)
+    void TabbedArea::draw (Graphics *graphics)
     {
         const Color &faceColor = getBaseColor();
         const int alpha = getBaseColor().a;
@@ -316,15 +322,13 @@ namespace gcn
                                 mTabContainer->getHeight());
         }
         
-        //drawChildren(graphics);
+        // Draw the widget from a select tab.
         std::vector<std::pair<Tab*, Widget*>>::iterator iter;
         for (iter = mTabs.begin(); iter != mTabs.end(); iter++)
         {
             iter->first->_draw(graphics);
             if (iter->first == mSelectedTab)
             {
-                //iter->second->setX(20);
-                //iter->second->setY(50);
                 iter->second->_draw(graphics);
             }
         }
@@ -480,12 +484,23 @@ namespace gcn
 
             if (tab != NULL)
             {
-                setSelectedTab(tab);
+                setSelectedTab (tab);
+                tabActive = true;
+                mouseEvent.consume ();
+            }
+            else
+            {
+                widget = mWidgetContainer->getWidgetAt(mouseEvent.getX(), mouseEvent.getY());
+                if (widget == NULL)
+                {
+                    mouseEvent.consume();
+                }
+                tabActive = false;
             }
         }
 
         // Request focus only if the source of the event
-        // is not focusble. If the source of the event
+        // is not focusable. If the source of the event
         // is focused we don't want to steal the focus.
         if (!mouseEvent.getSource()->isFocusable())
         {
