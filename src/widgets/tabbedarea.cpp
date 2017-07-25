@@ -6,11 +6,11 @@
  * /______/ //______/ //_/ //_____/\ /_/ //_/ //_/ //_/ //_/ /|_/ /
  * \______\/ \______\/ \_\/ \_____\/ \_\/ \_\/ \_\/ \_\/ \_\/ \_\/
  *
- * Copyright (c) 2004 - 2008 Olof Naessén and Per Larsson
+ * Copyright (c) 2004 - 2008 Olof NaessÃ©n and Per Larsson
  *
  *
  * Per Larsson a.k.a finalman
- * Olof Naessén a.k.a jansem/yakslem
+ * Olof NaessÃ©n a.k.a jansem/yakslem
  *
  * Visit: http://guichan.sourceforge.net
  *
@@ -102,7 +102,8 @@ namespace gcn
     {
         tab->setTabbedArea(this);
         tab->addActionListener(this);
-
+        
+/**/    //tab->addMouseListener(mTabContainer);
         mTabContainer->add(tab);
         mTabs.push_back(std::pair<Tab*, Widget*>(tab, widget));
 
@@ -255,6 +256,11 @@ namespace gcn
         return mSelectedTab;
     }
 
+    bool TabbedArea::isTabActive() const
+    {
+        return tabActive;
+    }
+
     void TabbedArea::setOpaque(bool opaque)
     {
         mOpaque = opaque;
@@ -265,7 +271,7 @@ namespace gcn
         return mOpaque;
     }
 
-    void TabbedArea::draw(Graphics *graphics)
+    void TabbedArea::draw (Graphics *graphics)
     {
         const Color &faceColor = getBaseColor();
         const int alpha = getBaseColor().a;
@@ -309,15 +315,23 @@ namespace gcn
         // the selected tab.
         if (mSelectedTab != NULL)
         {
-            graphics->setColor(getBaseColor());
-            graphics->drawLine(mSelectedTab->getX() + 1,
-                               mTabContainer->getHeight(),
-                               mSelectedTab->getX() + mSelectedTab->getWidth() - 2,
-                               mTabContainer->getHeight());
-
+            graphics->setColor (getBaseColor());
+            graphics->drawLine (mSelectedTab->getX() + 1,
+                                mTabContainer->getHeight(),
+                                mSelectedTab->getX() + mSelectedTab->getWidth() - 2,
+                                mTabContainer->getHeight());
         }
-
-        //drawChildren(graphics);
+        
+        // Draw the widget from a select tab.
+        std::vector<std::pair<Tab*, Widget*>>::iterator iter;
+        for (iter = mTabs.begin(); iter != mTabs.end(); iter++)
+        {
+            iter->first->_draw(graphics);
+            if (iter->first == mSelectedTab)
+            {
+                iter->second->_draw(graphics);
+            }
+        }
     }
 
     void TabbedArea::adjustSize()
@@ -358,6 +372,10 @@ namespace gcn
             Tab* tab = mTabs[i].first;
             tab->setPosition(x, maxTabHeight - tab->getHeight());
             x += tab->getWidth();
+            
+            Widget* widget = mTabs[i].second;
+            widget->setX(mWidgetContainer->getX());
+            widget->setY(mWidgetContainer->getY());
         }
     }
 
@@ -466,12 +484,23 @@ namespace gcn
 
             if (tab != NULL)
             {
-                setSelectedTab(tab);
+                setSelectedTab (tab);
+                tabActive = true;
+                mouseEvent.consume ();
+            }
+            else
+            {
+                widget = mWidgetContainer->getWidgetAt(mouseEvent.getX(), mouseEvent.getY());
+                if (widget == NULL)
+                {
+                    mouseEvent.consume();
+                }
+                tabActive = false;
             }
         }
 
         // Request focus only if the source of the event
-        // is not focusble. If the source of the event
+        // is not focusable. If the source of the event
         // is focused we don't want to steal the focus.
         if (!mouseEvent.getSource()->isFocusable())
         {

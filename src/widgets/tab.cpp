@@ -6,11 +6,11 @@
  * /______/ //______/ //_/ //_____/\ /_/ //_/ //_/ //_/ //_/ /|_/ /
  * \______\/ \______\/ \_\/ \_____\/ \_\/ \_\/ \_\/ \_\/ \_\/ \_\/
  *
- * Copyright (c) 2004 - 2008 Olof Naessén and Per Larsson
+ * Copyright (c) 2004 - 2008 Olof NaessÃ©n and Per Larsson
  *
  *
  * Per Larsson a.k.a finalman
- * Olof Naessén a.k.a jansem/yakslem
+ * Olof NaessÃ©n a.k.a jansem/yakslem
  *
  * Visit: http://guichan.sourceforge.net
  *
@@ -60,9 +60,8 @@ namespace gcn
             mTabbedArea(NULL)
     {
         mLabel = new Label();
-        mLabel->setPosition(4, 4);
+        mLabel->setPosition(6, 6);
         add(mLabel);
-
         addMouseListener(this);
     }
 
@@ -73,8 +72,8 @@ namespace gcn
 
     void Tab::adjustSize()
     {
-        setSize(mLabel->getWidth() + 8,
-                mLabel->getHeight() + 8);
+        setSize(mLabel->getWidth() + 12,
+                mLabel->getHeight() + 12);
 
         if (mTabbedArea != NULL)
             mTabbedArea->adjustTabPositions();
@@ -152,7 +151,9 @@ namespace gcn
 
         if (mTabbedArea != NULL
             && mTabbedArea->isFocused()
-            && mTabbedArea->isTabSelected(this))
+            && mTabbedArea->isTabSelected(this)
+//            && mHasMouse)
+            && mTabbedArea->isTabActive())
         {
             graphics->setColor(Color(0x000000));
             graphics->drawRectangle(2,
@@ -160,8 +161,10 @@ namespace gcn
                                     currentClipArea.width - 4,
                                     currentClipArea.height - 4);
         }
-
-        graphics->popClipArea();
+        
+        mLabel->setAlignment (Graphics::Center);
+        mLabel->_draw (graphics);
+        graphics->popClipArea ();
     }
 
     void Tab::mouseEntered(MouseEvent& mouseEvent)
