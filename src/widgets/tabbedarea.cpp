@@ -323,7 +323,7 @@ namespace gcn
         }
         
         // Draw the widget from a select tab.
-        std::vector<std::pair<Tab*, Widget*>>::iterator iter;
+        std::vector<std::pair<Tab*, Widget*> >::iterator iter;
         for (iter = mTabs.begin(); iter != mTabs.end(); iter++)
         {
             iter->first->_draw(graphics);
